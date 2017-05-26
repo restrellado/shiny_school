@@ -16,7 +16,7 @@ plot a map that shows California public schools in that area. Some possible
 use cases for this app are: 
 
 - Parents who are looking to move to California or within California can search 
-for schools that are in the area they are looking to move to  
+for schools that are in the area they are interested in
 - Analysts who are researching California schools can have quick access to 
 the names of schools in a given area 
 
@@ -28,8 +28,12 @@ useful variables, including longitude and latitude.
 
 ## About the Data (cont)
 
-```{r message = F, warning = F, comment = NULL, echo = T}
+The app draws on a rich dataset that includes all California districts and 
+schools. 
+
+```{r message = F, warning = F, comment = NULL}
 library(tidyverse)
+library(knitr)
 
 # Read and clean data
   if(file.exists("schools_by_zip/data/pubschls.txt") == FALSE) {
@@ -39,12 +43,18 @@ library(tidyverse)
   }
   
   original <- read_tsv("schools_by_zip/data/pubschls.txt") 
-
-# Print variable names 
-names(original)
 ```
 
-## Sample Map Using Zip Code 95670
+```{r echo = TRUE}
+kable(
+  original %>% 
+  filter(StatusType == "Active") %>% 
+  summarise(`total schools` = n_distinct(School), 
+            `total districts` = n_distinct(District))
+)
+```
+
+## Server Calculation (Zip Code 95670)
 
 ```{r message = F}
 library(leaflet)
@@ -56,10 +66,14 @@ cde_schls <- original %>%
       rename(lat = Latitude, lon = Longitude) %>%
       select(-c(AdmFName1:AdmEmail3, FundingType, Magnet, StatusType,
                 Street:State, DOC, CharterNum, SOC, EdOpsCode, EILCode))
-
-    cde_schls %>%
-      leaflet() %>%
-      addTiles() %>%
-      addMarkers(popup = cde_schls$School)
 ```
+
+```{r echo = T, message = F, fig.width = 5, fig.height = 3}
+# Takes a zip code as input and generates a map
+cde_schls %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addMarkers(popup = cde_schls$School)
+```
+
 
