@@ -1,0 +1,65 @@
+---
+title: "California Schools by Zip Code"
+author: "Ryan Estrellado"
+date: "5/26/2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Purpose 
+
+The purpose of this Shiny App is to take a California five digit zip code and 
+plot a map that shows California public schools in that area. Some possible 
+use cases for this app are: 
+
+- Parents who are looking to move to California or within California can search 
+for schools that are in the area they are looking to move to  
+- Analysts who are researching California schools can have quick access to 
+the names of schools in a given area 
+
+## About the Data 
+
+The data used for this app is publicly available and can be found at the 
+[California Department of Education's website](http://www.cde.ca.gov/ds/si/ds/pubschls.asp). The data has many 
+useful variables, including longitude and latitude. 
+
+## About the Data (cont)
+
+```{r message = F, warning = F, comment = NULL, echo = T}
+library(tidyverse)
+
+# Read and clean data
+  if(file.exists("schools_by_zip/data/pubschls.txt") == FALSE) {
+    download.file("ftp://ftp.cde.ca.gov/demo/schlname/pubschls.txt",
+                  "data/pubschls.txt",
+                  method = "curl")
+  }
+  
+  original <- read_tsv("schools_by_zip/data/pubschls.txt") 
+
+# Print variable names 
+names(original)
+```
+
+## Sample Map Using Zip Code 95670
+
+```{r message = F}
+library(leaflet)
+library(stringr)
+
+cde_schls <- original %>%
+      filter(StatusType == "Active",
+             str_detect(MailZip, "95670") == TRUE) %>%
+      rename(lat = Latitude, lon = Longitude) %>%
+      select(-c(AdmFName1:AdmEmail3, FundingType, Magnet, StatusType,
+                Street:State, DOC, CharterNum, SOC, EdOpsCode, EILCode))
+
+    cde_schls %>%
+      leaflet() %>%
+      addTiles() %>%
+      addMarkers(popup = cde_schls$School)
+```
+
