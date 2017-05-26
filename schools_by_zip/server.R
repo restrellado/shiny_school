@@ -22,7 +22,7 @@ shinyServer(function(input, output) {
   # Define message text output 
   output$message <- renderText({
     if(sum(str_detect(original$MailZip, zipcode()), na.rm = T) < 1) {
-      "This is not a Californiz zip code"
+      "This is not a California zip code."
     } else {
       ""
     } 
